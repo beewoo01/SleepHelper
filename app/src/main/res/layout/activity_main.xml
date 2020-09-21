@@ -4,15 +4,55 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:orientation="vertical">
 
-    <TextView
+    <com.github.nikartm.button.FitButton
+        android:id="@+id/main_BT_beta"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:layout_height="70dp"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:maxWidth="200dp"
+        android:minWidth="150dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="1dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="1dp"
+        app:fb_backgroundColor="#F8473A"
+        app:fb_cornerRadius="24dp"
+        app:fb_rippleColor="#BEB9B9"
+        app:fb_shape="rectangle"
+        app:fb_text="베타파"
+        app:fb_textColor="#FFFFFF"
+        app:fb_textSize="30sp"
+        app:layout_constraintEnd_toEndOf="@+id/main_BT_alpha"
+        app:layout_constraintStart_toStartOf="@+id/main_BT_alpha"
+        app:layout_constraintTop_toBottomOf="@+id/main_BT_alpha" />
+
+    <com.github.nikartm.button.FitButton
+        android:id="@+id/main_BT_alpha"
+        android:layout_width="wrap_content"
+        android:layout_height="70dp"
+        android:gravity="center"
+        android:maxWidth="200dp"
+        android:minWidth="150dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="1dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="1dp"
+        app:fb_backgroundColor="#3F51B5"
+        app:fb_cornerRadius="24dp"
+        app:fb_rippleColor="#BEB9B9"
+        app:fb_shape="rectangle"
+        app:fb_text="알파파"
+        app:fb_textColor="#FFFFFF"
+        app:fb_textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.45" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
