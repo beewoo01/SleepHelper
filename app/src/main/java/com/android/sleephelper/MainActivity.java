@@ -13,7 +13,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -33,10 +32,10 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
     Context activity;
 
-    private BluetoothAdapter bluetoothAdapter; // 블루투스 어댑터
-    private Set<BluetoothDevice> devices; // 블루투스 디바이스 데이터 셋
-    private BluetoothDevice bluetoothDevice; // 블루투스 디바이스
-    private BluetoothSocket bluetoothSocket = null; // 블루투스 소켓
+    private BluetoothAdapter bluetoothAdapter;
+    private Set<BluetoothDevice> devices;
+    private BluetoothDevice bluetoothDevice;
+    private BluetoothSocket bluetoothSocket = null;
     int pariedDeviceCount;
 
 
@@ -85,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        //selectBluetoothDevice();
+        selectBluetoothDevice();
     }
 
     @Override
@@ -120,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
             }else{
                 media_player = MediaPlayer.create(this, R.raw.alpha);
                 media_player.setLooping(true);
-                media_player.prepare();
                 isPlaying_alpha = true;
                 media_player.start();
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
@@ -139,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
             }else{
                 media_player = MediaPlayer.create(this, R.raw.beta);
                 media_player.setLooping(true);
-                media_player.prepare();
                 isPlaying_beta = true;
                 media_player.start();
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
@@ -151,42 +148,33 @@ public class MainActivity extends AppCompatActivity {
 
     public void selectBluetoothDevice() {
         devices = bluetoothAdapter.getBondedDevices();
-        // 페어링 된 디바이스의 크기를 저장
         pariedDeviceCount = devices.size();
-        // 페어링 되어있는 장치가 없는 경우
         if(pariedDeviceCount == 0) {
             // 페어링을 하기위한 함수 호출
         }
-        // 페어링 되어있는 장치가 있는 경우
+
         else {
-            // 디바이스를 선택하기 위한 다이얼로그 생성
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("페어링 되어있는 블루투스 디바이스 목록");
-            // 페어링 된 각각의 디바이스의 이름과 주소를 저장
             List<String> list = new ArrayList<>();
-            // 모든 디바이스의 이름을 리스트에 추가
             for(BluetoothDevice bluetoothDevice : devices) {
                 list.add(bluetoothDevice.getName());
             }
             list.add("취소");
 
 
-            // List를 CharSequence 배열로 변경
             final CharSequence[] charSequences = list.toArray(new CharSequence[list.size()]);
             list.toArray(new CharSequence[list.size()]);
 
-            // 해당 아이템을 눌렀을 때 호출 되는 이벤트 리스너
             builder.setItems(charSequences, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    // 해당 디바이스와 연결하는 함수 호출
                     connectDevice(charSequences[which].toString());
                 }
             });
 
-            // 뒤로가기 버튼 누를 때 창이 안닫히도록 설정
             builder.setCancelable(false);
-            // 다이얼로그 생성
+
             AlertDialog alertDialog = builder.create();
             alertDialog.show();
         }
@@ -194,28 +182,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void connectDevice(String deviceName) {
-        // 페어링 된 디바이스들을 모두 탐색
-        for(BluetoothDevice tempDevice : devices) {
-            // 사용자가 선택한 이름과 같은 디바이스로 설정하고 반복문 종료
-            if(deviceName.equals(tempDevice.getName())) {
-                bluetoothDevice = tempDevice;
-                break;
+    public void connectDevice(final String deviceName) {
+
+        new Thread(new Runnable(){
+
+            public void run(){
+                for(BluetoothDevice tempDevice : devices) {
+                    if(deviceName.equals(tempDevice.getName())) {
+                        bluetoothDevice = tempDevice;
+                        break;
+                    }
+                }
+
+                //bluetoothAdapter.enable();
+                Log.e("name : " + bluetoothDevice.getName(),"" + bluetoothDevice.getUuids()[0] + "   " + bluetoothDevice.getUuids().length);
+                UUID uuid = java.util.UUID.fromString(String.valueOf(bluetoothDevice.getUuids()[0]));
+                try {
+                    //bluetoothDevice.createBond();
+
+                    //bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(uuid);
+                    bluetoothSocket = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid);
+
+                    bluetoothSocket.connect();
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
-        bluetoothDevice.createBond();
-        Log.e("gg","" + bluetoothDevice.getUuids()[1] + "   " + bluetoothDevice.getUuids().length);
-        // UUID 생성
-        UUID uuid = java.util.UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-        // Rfcomm 채널을 통해 블루투스 디바이스와 통신하는 소켓 생성
-        try {
 
-            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(uuid);
-            bluetoothSocket.connect();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
 
 
