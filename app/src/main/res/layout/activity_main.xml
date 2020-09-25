@@ -18,7 +18,7 @@
         android:paddingTop="1dp"
         android:paddingRight="20dp"
         android:paddingBottom="1dp"
-        app:fb_backgroundColor="#F8473A"
+        app:fb_backgroundColor="#009688"
         app:fb_cornerRadius="24dp"
         app:fb_rippleColor="#BEB9B9"
         app:fb_shape="rectangle"
