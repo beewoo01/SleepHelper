@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        //selectBluetoothDevice();
+        selectBluetoothDevice();
 
         Sound = new Thread(){
             public void run(){
@@ -265,6 +265,8 @@ public class MainActivity extends AppCompatActivity {
                     bluetoothSocket = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid);
 
                     bluetoothSocket.connect();
+                    bluetoothSocket.getOutputStream();
+                    Log.e("isconnected",""+bluetoothSocket.isConnected());
 
 
                 } catch (IOException e) {
