@@ -268,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
                     bluetoothSocket.getOutputStream();
                     Log.e("isconnected",""+bluetoothSocket.isConnected());
 
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
