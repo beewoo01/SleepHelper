@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -18,11 +19,13 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.nikartm.button.FitButton;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +35,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
     Context activity;
 
-    private String ve = "2020-09-24";
+    private String ve = "2020-10-05";
     private BluetoothAdapter bluetoothAdapter;
     private Set<BluetoothDevice> devices;
     private BluetoothDevice bluetoothDevice;
@@ -41,14 +44,15 @@ public class MainActivity extends AppCompatActivity {
 
     Thread Sound;
 
-
     final int ALPHA = 1000;
     final int BETA = 1001;
     MediaPlayer media_player;
     FitButton button_alpha, button_beta;
+    TextView textView_version;
     private boolean isPlaying_alpha = false, isPlaying_beta = false;
     private AudioManager audioManager;
     Boolean play = false;
+    Drawable ic_play, ic_stop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
 
         button_alpha = findViewById(R.id.main_BT_alpha);
         button_beta = findViewById(R.id.main_BT_beta);
+        ic_play = getDrawable(R.drawable.ic_play_white);
+        ic_stop = getDrawable(R.drawable.ic_stop_white);
+        textView_version = findViewById(R.id.main_TV_version);
+        textView_version.setText(ve);
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -86,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        selectBluetoothDevice();
+        //selectBluetoothDevice();
 
         Sound = new Thread(){
             public void run(){
@@ -133,20 +141,24 @@ public class MainActivity extends AppCompatActivity {
     private void playSound(int type) throws IOException {
        // Log.e("status", "play : " + isPlaying + "  " + type + " : start");
         play = false;
+        button_alpha.setEnabled(false);
 
         if (type == ALPHA) {
             if(isPlaying_beta){
                 media_player.stop();
                 isPlaying_beta = false;
+                button_alpha.setIcon(ic_play);
             }
             else if(isPlaying_alpha) {
                 media_player.stop();
                 isPlaying_alpha = false;
+                button_alpha.setIcon(ic_play);
             }else{
                 media_player = MediaPlayer.create(this, R.raw.alpha);
                 media_player.setLooping(true);
                 isPlaying_alpha = true;
                 media_player.start();
+                button_alpha.setIcon(ic_stop);
                 new Thread(new Runnable(){
                     public void run(){
                         play = true;
@@ -158,9 +170,10 @@ public class MainActivity extends AppCompatActivity {
                                         audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
                                 vol = vol + 0.01;
                             }
-                            if(vol == 1)
+                            if(vol > 0.8)
                                 play = false;
                             try {
+                                Log.e("vol", "vol : " + vol);
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -193,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                                         audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
                                 vol = vol + 0.01;
                             }
-                            if(vol == 1)
+                            if(vol > 1)
                                 play = false;
                             try {
                                 Thread.sleep(1000);
@@ -205,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
                 }).start();
             }
         }
+        button_alpha.setEnabled(true);
     }
 
     public void selectBluetoothDevice() {
@@ -256,13 +270,15 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 //bluetoothAdapter.enable();
-                Log.e("name : " + bluetoothDevice.getName(),"" + bluetoothDevice.getUuids()[0] + "   " + bluetoothDevice.getUuids().length);
-                UUID uuid = java.util.UUID.fromString(String.valueOf(bluetoothDevice.getUuids()[0]));
+                Log.e("name : " + bluetoothDevice.getName(),"" + bluetoothDevice.getUuids()[1] + "   " + bluetoothDevice.getUuids().length);
+                UUID uuid = UUID.fromString(String.valueOf(bluetoothDevice.getUuids()[1]));
                 try {
                     //bluetoothDevice.createBond();
 
                     //bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(uuid);
-                    bluetoothSocket = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid);
+                    //bluetoothSocket = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid);
+                    bluetoothAdapter.cancelDiscovery();
+                    bluetoothSocket = createBluetoothSocket(bluetoothDevice, bluetoothDevice.getUuids()[0].getUuid());
 
                     bluetoothSocket.connect();
                     bluetoothSocket.getOutputStream();
@@ -280,5 +296,15 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private BluetoothSocket createBluetoothSocket(BluetoothDevice device, UUID mMyUuid) throws IOException {
+        if(Build.VERSION.SDK_INT >= 10){
+            try {
+                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] { UUID.class });
+                return (BluetoothSocket) m.invoke(device, mMyUuid);
+            } catch (Exception e) {
+                Log.e("createBluetoothSocket", "Could not create Insecure RFComm Connection",e);
+            }
+        } return device.createRfcommSocketToServiceRecord(mMyUuid);
+    }
 
 }

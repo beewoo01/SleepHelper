@@ -7,29 +7,6 @@
     android:orientation="vertical">
 
     <com.github.nikartm.button.FitButton
-        android:id="@+id/main_BT_beta"
-        android:layout_width="wrap_content"
-        android:layout_height="70dp"
-        android:layout_marginTop="24dp"
-        android:gravity="center"
-        android:maxWidth="200dp"
-        android:minWidth="150dp"
-        android:paddingLeft="20dp"
-        android:paddingTop="1dp"
-        android:paddingRight="20dp"
-        android:paddingBottom="1dp"
-        app:fb_backgroundColor="#009688"
-        app:fb_cornerRadius="24dp"
-        app:fb_rippleColor="#BEB9B9"
-        app:fb_shape="rectangle"
-        app:fb_text="베타파"
-        app:fb_textColor="#FFFFFF"
-        app:fb_textSize="30sp"
-        app:layout_constraintEnd_toEndOf="@+id/main_BT_alpha"
-        app:layout_constraintStart_toStartOf="@+id/main_BT_alpha"
-        app:layout_constraintTop_toBottomOf="@+id/main_BT_alpha" />
-
-    <com.github.nikartm.button.FitButton
         android:id="@+id/main_BT_alpha"
         android:layout_width="wrap_content"
         android:layout_height="70dp"
@@ -42,6 +19,11 @@
         android:paddingBottom="1dp"
         app:fb_backgroundColor="#3F51B5"
         app:fb_cornerRadius="24dp"
+        app:fb_icon="@drawable/ic_play_white"
+        app:fb_iconHeight="50dp"
+        app:fb_iconMarginStart="10dp"
+        app:fb_iconPosition="right"
+        app:fb_iconWidth="50dp"
         app:fb_rippleColor="#BEB9B9"
         app:fb_shape="rectangle"
         app:fb_text="알파파"
@@ -50,8 +32,40 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.45" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.github.nikartm.button.FitButton
+        android:id="@+id/main_BT_beta"
+        android:layout_width="wrap_content"
+        android:layout_height="70dp"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:maxWidth="200dp"
+        android:minWidth="150dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="1dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="1dp"
+        android:visibility="gone"
+        app:fb_backgroundColor="#009688"
+        app:fb_cornerRadius="24dp"
+        app:fb_rippleColor="#BEB9B9"
+        app:fb_shape="rectangle"
+        app:fb_text="베타파"
+        app:fb_textColor="#FFFFFF"
+        app:fb_textSize="30sp"
+        app:layout_constraintEnd_toEndOf="@+id/main_BT_alpha"
+        app:layout_constraintStart_toStartOf="@+id/main_BT_alpha"
+        app:layout_constraintTop_toBottomOf="@+id/main_BT_alpha" />
+
+    <TextView
+        android:id="@+id/main_TV_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
