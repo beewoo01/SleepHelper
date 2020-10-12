@@ -92,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
             public void onAvailable(Network network) {
                 //here you can use bindProcessToNetwork
                 Log.d("gg", "Mobile connectedddddddddddddddd");
-
             }
 
         });
