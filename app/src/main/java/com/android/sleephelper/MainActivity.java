@@ -14,6 +14,11 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -60,6 +65,52 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         activity = this;
+        String DEBUG_TAG = "NetworkStatusExample";
+        ConnectivityManager connMgr =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        boolean isWifiConn = false;
+        boolean isMobileConn = false;
+        for (Network network : connMgr.getAllNetworks()) {
+            NetworkInfo networkInfo = connMgr.getNetworkInfo(network);
+            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                isWifiConn |= networkInfo.isConnected();
+            }
+            if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                isMobileConn |= networkInfo.isConnected();
+            }
+        }
+        Log.d(DEBUG_TAG, "Wifi connected: " + isWifiConn);
+        Log.d(DEBUG_TAG, "Mobile connected: " + isMobileConn);
+
+        ConnectivityManager cm;
+        cm = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkRequest.Builder req = new NetworkRequest.Builder();
+        req.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        req.addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR);
+        cm.requestNetwork(req.build(), new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                //here you can use bindProcessToNetwork
+                Log.d("gg", "Mobile connectedddddddddddddddd");
+
+            }
+
+        });
+
+
+        ConnectivityManager cm1;
+        cm1 = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkRequest.Builder req1 = new NetworkRequest.Builder();
+        req.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        req.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+        cm1.requestNetwork(req.build(), new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                //here you can use bindProcessToNetwork
+                Log.d("gg", "wifi");
+            }
+
+        });
 
         button_alpha = findViewById(R.id.main_BT_alpha);
         button_beta = findViewById(R.id.main_BT_beta);
