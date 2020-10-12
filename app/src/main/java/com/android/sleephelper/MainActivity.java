@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -91,22 +92,59 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAvailable(Network network) {
                 //here you can use bindProcessToNetwork
-                Log.d("gg", "Mobile connectedddddddddddddddd");
+                try {
+                    App.net_mobile = network;
+                    String temp = new ServerConnection().execute("mobile","http://kiot.iptime.org:9000/test.php","data").get();
+                    Log.d("mobile", "Mobile : " + temp);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    App.net_mobile = network;
+                    String temp = new ServerConnection().execute("mobile","http://kiot.iptime.org:9000/test.php","data").get();
+                    Log.d("mobile", "Mobile1 : " + temp);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
         });
 
 
+
+
         ConnectivityManager cm1;
         cm1 = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkRequest.Builder req1 = new NetworkRequest.Builder();
-        req.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-        req.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-        cm1.requestNetwork(req.build(), new ConnectivityManager.NetworkCallback() {
+        req1.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        req1.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+        cm1.requestNetwork(req1.build(), new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
                 //here you can use bindProcessToNetwork
-                Log.d("gg", "wifi");
+                try {
+                    App.net_wifi = network;
+                    String temp = new ServerConnection().execute("wifi","http://192.168.10.44/test.php","data").get();
+                    Log.d("wifi", "Wifi : " + temp);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    App.net_wifi = network;
+                    String temp = new ServerConnection().execute("wifi","http://192.168.10.44/test.php","data").get();
+                    Log.d("wifi", "Wifi1 : " + temp);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
         });
