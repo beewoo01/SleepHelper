@@ -41,7 +41,7 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
     Context activity;
 
-    private String ve = "2020-10-05";
+    private String ve = "2020-10-29";
     private BluetoothAdapter bluetoothAdapter;
     private Set<BluetoothDevice> devices;
     private BluetoothDevice bluetoothDevice;
@@ -64,90 +64,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //25 -> 60
+        //11 -> 80
         activity = this;
-        String DEBUG_TAG = "NetworkStatusExample";
-        ConnectivityManager connMgr =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        boolean isWifiConn = false;
-        boolean isMobileConn = false;
-        for (Network network : connMgr.getAllNetworks()) {
-            NetworkInfo networkInfo = connMgr.getNetworkInfo(network);
-            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-                isWifiConn |= networkInfo.isConnected();
-            }
-            if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-                isMobileConn |= networkInfo.isConnected();
-            }
-        }
-        Log.d(DEBUG_TAG, "Wifi connected: " + isWifiConn);
-        Log.d(DEBUG_TAG, "Mobile connected: " + isMobileConn);
-
-        ConnectivityManager cm;
-        cm = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkRequest.Builder req = new NetworkRequest.Builder();
-        req.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-        req.addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR);
-        cm.requestNetwork(req.build(), new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                //here you can use bindProcessToNetwork
-                try {
-                    App.net_mobile = network;
-                    String temp = new ServerConnection().execute("mobile","http://kiot.iptime.org:9000/test.php","data").get();
-                    Log.d("mobile", "Mobile : " + temp);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    App.net_mobile = network;
-                    String temp = new ServerConnection().execute("mobile","http://kiot.iptime.org:9000/test.php","data").get();
-                    Log.d("mobile", "Mobile1 : " + temp);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
-
-
-
-
-        ConnectivityManager cm1;
-        cm1 = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkRequest.Builder req1 = new NetworkRequest.Builder();
-        req1.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-        req1.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-        cm1.requestNetwork(req1.build(), new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                //here you can use bindProcessToNetwork
-                try {
-                    App.net_wifi = network;
-                    String temp = new ServerConnection().execute("wifi","http://192.168.10.44/test.php","data").get();
-                    Log.d("wifi", "Wifi : " + temp);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    App.net_wifi = network;
-                    String temp = new ServerConnection().execute("wifi","http://192.168.10.44/test.php","data").get();
-                    Log.d("wifi", "Wifi1 : " + temp);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
 
         button_alpha = findViewById(R.id.main_BT_alpha);
         button_beta = findViewById(R.id.main_BT_beta);
@@ -236,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 media_player.stop();
                 isPlaying_beta = false;
                 button_alpha.setIcon(ic_play);
+                button_beta.setIcon(ic_play);
             }
             else if(isPlaying_alpha) {
                 media_player.stop();
@@ -247,6 +167,11 @@ public class MainActivity extends AppCompatActivity {
                 isPlaying_alpha = true;
                 media_player.start();
                 button_alpha.setIcon(ic_stop);
+                double vol = 0.8;
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                        (int) (audioManager.getStreamMaxVolume(audioManager.STREAM_MUSIC) * vol),
+                        audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+                /*
                 new Thread(new Runnable(){
                     public void run(){
                         play = true;
@@ -258,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                                         audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
                                 vol = vol + 0.01;
                             }
-                            if(vol > 0.8)
+                            if(vol > 0.6)
                                 play = false;
                             try {
                                 Log.e("vol", "vol : " + vol);
@@ -269,20 +194,30 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }).start();
+                 */
             }
         } else if (type == BETA) {
             if(isPlaying_alpha){
                 media_player.stop();
                 isPlaying_alpha = false;
+                button_beta.setIcon(ic_play);
+                button_alpha.setIcon(ic_play);
             }
             else if(isPlaying_beta) {
                 media_player.stop();
                 isPlaying_beta = false;
+                button_beta.setIcon(ic_play);
             }else{
                 media_player = MediaPlayer.create(this, R.raw.beta);
                 media_player.setLooping(true);
                 isPlaying_beta = true;
                 media_player.start();
+                button_beta.setIcon(ic_stop);
+                double vol = 0.6;
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                        (int) (audioManager.getStreamMaxVolume(audioManager.STREAM_MUSIC) * vol),
+                        audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+                /*
                 new Thread(new Runnable(){
                     public void run(){
                         play = true;
@@ -304,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }).start();
+                 */
             }
         }
         button_alpha.setEnabled(true);
