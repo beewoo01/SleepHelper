@@ -21,6 +21,10 @@ import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -60,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
     Boolean play = false;
     Drawable ic_play, ic_stop;
 
+    private Messenger mServiceMessenger = null;
+    private boolean mIsBound;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
         audioManager = (AudioManager) getSystemService(activity.AUDIO_SERVICE);
 
+        Intent intent = new Intent(this, AudioService.class);
+        startService(intent);
 
         button_alpha.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,7 +152,36 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    /** Service 로 부터 message를 받음 */
+    private final Messenger mMessenger = new Messenger(new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.i("test","act : what "+msg.what);
+            switch (msg.what) {
+                case AudioService.MSG_SEND_TO_ACTIVITY:
+                    int value1 = msg.getData().getInt("fromService");
+                    String value2 = msg.getData().getString("test");
+                    Log.i("test","act : value1 "+value1);
+                    Log.i("test","act : value2 "+value2);
+                    break;
+            }
+            return false;
+        }
+    }));
 
+    /** Service 로 메시지를 보냄 */
+    private void sendMessageToService(String str) {
+        if (mIsBound) {
+            if (mServiceMessenger != null) {
+                try {
+                    Message msg = Message.obtain(null, AudioService.MSG_SEND_TO_SERVICE, str);
+                    msg.replyTo = mMessenger;
+                    mServiceMessenger.send(msg);
+                } catch (RemoteException e) {
+                }
+            }
+        }
+    }
 
     private void playSound(int type) throws IOException {
        // Log.e("status", "play : " + isPlaying + "  " + type + " : start");
