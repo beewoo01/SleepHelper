@@ -8,9 +8,11 @@ import android.bluetooth.BluetoothAdapter;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -22,6 +24,7 @@ import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -45,7 +48,9 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
     Context activity;
 
-    private String ve = "2020-10-29";
+    private final String TAG = "MainActivity";
+
+    private String ve = "2020-11-03";
     private BluetoothAdapter bluetoothAdapter;
     private Set<BluetoothDevice> devices;
     private BluetoothDevice bluetoothDevice;
@@ -65,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     Drawable ic_play, ic_stop;
 
     private Messenger mServiceMessenger = null;
-    private boolean mIsBound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         //25 -> 60
         //11 -> 80
         activity = this;
+
 
         button_alpha = findViewById(R.id.main_BT_alpha);
         button_beta = findViewById(R.id.main_BT_beta);
@@ -86,28 +91,21 @@ public class MainActivity extends AppCompatActivity {
 
         audioManager = (AudioManager) getSystemService(activity.AUDIO_SERVICE);
 
-        Intent intent = new Intent(this, AudioService.class);
-        startService(intent);
+
+        startService(new Intent(MainActivity.this, AudioService.class));
+        bindService(new Intent(this, AudioService.class), mConnection, Context.BIND_AUTO_CREATE);
 
         button_alpha.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    playSound(ALPHA);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                sendMessageToService("ALPHA");
             }
         });
 
         button_beta.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    playSound(BETA);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                sendMessageToService("BETA");
             }
         });
         //selectBluetoothDevice();
@@ -122,6 +120,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
+
+        ButtonUpdate();
+
         if (bluetoothAdapter == null) {
             Toast.makeText(activity, "블루투스 미지원 기기!",Toast.LENGTH_LONG);
             finish();
@@ -138,31 +139,40 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop(){
         super.onStop();
-        try {
-            if(isPlaying_alpha){
-                playSound(ALPHA);
-                isPlaying_alpha = false;
-            }
-            if(isPlaying_beta) {
-                playSound(BETA);
-                isPlaying_beta = false;
-            }
-            play = false;
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d("test","onServiceConnected");
+            mServiceMessenger = new Messenger(iBinder);
+            try {
+                Message msg = Message.obtain(null, AudioService.MSG_REGISTER_CLIENT, "connection");
+                msg.replyTo = mMessenger;
+                mServiceMessenger.send(msg);
+            }
+            catch (RemoteException e) {
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+        }
+    };
+
     /** Service 로 부터 message를 받음 */
     private final Messenger mMessenger = new Messenger(new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            Log.i("test","act : what "+msg.what);
+            Log.i(TAG,"act : what "+msg.what);
             switch (msg.what) {
                 case AudioService.MSG_SEND_TO_ACTIVITY:
                     int value1 = msg.getData().getInt("fromService");
-                    String value2 = msg.getData().getString("test");
+                    if(value1 == 1){
+                        ButtonUpdate();
+                    }
                     Log.i("test","act : value1 "+value1);
-                    Log.i("test","act : value2 "+value2);
                     break;
             }
             return false;
@@ -171,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Service 로 메시지를 보냄 */
     private void sendMessageToService(String str) {
-        if (mIsBound) {
+        if (App.audioServiceBound) {
             if (mServiceMessenger != null) {
                 try {
                     Message msg = Message.obtain(null, AudioService.MSG_SEND_TO_SERVICE, str);
@@ -183,104 +193,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void playSound(int type) throws IOException {
-       // Log.e("status", "play : " + isPlaying + "  " + type + " : start");
-        play = false;
-        button_alpha.setEnabled(false);
+    private void ButtonUpdate(){
+        if(App.isPlaying_alpha)
+            button_alpha.setIcon(ic_stop);
+        else
+            button_alpha.setIcon(ic_play);
+        if(App.isPlaying_beta)
+            button_beta.setIcon(ic_stop);
+        else
+            button_beta.setIcon(ic_play);
 
-        if (type == ALPHA) {
-            if(isPlaying_beta){
-                media_player.stop();
-                isPlaying_beta = false;
-                button_alpha.setIcon(ic_play);
-                button_beta.setIcon(ic_play);
-            }
-            else if(isPlaying_alpha) {
-                media_player.stop();
-                isPlaying_alpha = false;
-                button_alpha.setIcon(ic_play);
-            }else{
-                media_player = MediaPlayer.create(this, R.raw.alpha);
-                media_player.setLooping(true);
-                isPlaying_alpha = true;
-                media_player.start();
-                button_alpha.setIcon(ic_stop);
-                double vol = 0.8;
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                        (int) (audioManager.getStreamMaxVolume(audioManager.STREAM_MUSIC) * vol),
-                        audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-                /*
-                new Thread(new Runnable(){
-                    public void run(){
-                        play = true;
-                        double vol = 0.1;
-                        while (play){
-                            if(play) {
-                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                                        (int) (audioManager.getStreamMaxVolume(audioManager.STREAM_MUSIC) * vol),
-                                        audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-                                vol = vol + 0.01;
-                            }
-                            if(vol > 0.6)
-                                play = false;
-                            try {
-                                Log.e("vol", "vol : " + vol);
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }).start();
-                 */
-            }
-        } else if (type == BETA) {
-            if(isPlaying_alpha){
-                media_player.stop();
-                isPlaying_alpha = false;
-                button_beta.setIcon(ic_play);
-                button_alpha.setIcon(ic_play);
-            }
-            else if(isPlaying_beta) {
-                media_player.stop();
-                isPlaying_beta = false;
-                button_beta.setIcon(ic_play);
-            }else{
-                media_player = MediaPlayer.create(this, R.raw.beta);
-                media_player.setLooping(true);
-                isPlaying_beta = true;
-                media_player.start();
-                button_beta.setIcon(ic_stop);
-                double vol = 0.6;
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                        (int) (audioManager.getStreamMaxVolume(audioManager.STREAM_MUSIC) * vol),
-                        audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-                /*
-                new Thread(new Runnable(){
-                    public void run(){
-                        play = true;
-                        double vol = 0.1;
-                        while (play){
-                            if(play) {
-                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                                        (int) (audioManager.getStreamMaxVolume(audioManager.STREAM_MUSIC) * vol),
-                                        audioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-                                vol = vol + 0.01;
-                            }
-                            if(vol > 1)
-                                play = false;
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }).start();
-                 */
-            }
-        }
-        button_alpha.setEnabled(true);
     }
 
     public void selectBluetoothDevice() {
