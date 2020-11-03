@@ -1,6 +1,8 @@
 package com.android.sleephelper;
 
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.net.Network;
 
 public class App extends android.app.Application {
@@ -14,6 +16,15 @@ public class App extends android.app.Application {
         super.onCreate();
     }
 
+
+    public static boolean isServiceRunning(Context context) {
+        ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo rsi : am.getRunningServices(Integer.MAX_VALUE)) {
+            if (AudioService.class.getName().equals(rsi.service.getClassName()))
+                return true;
+        }
+        return false;
+    }
 
 
 

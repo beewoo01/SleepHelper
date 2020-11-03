@@ -14,13 +14,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,11 +21,10 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import com.github.nikartm.button.FitButton;
 
@@ -42,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -57,16 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothSocket bluetoothSocket = null;
     int pariedDeviceCount;
 
-    Thread Sound;
-
-    final int ALPHA = 1000;
-    final int BETA = 1001;
-    MediaPlayer media_player;
     FitButton button_alpha, button_beta;
     TextView textView_version;
-    private boolean isPlaying_alpha = false, isPlaying_beta = false;
-    private AudioManager audioManager;
-    Boolean play = false;
     Drawable ic_play, ic_stop;
 
     private Messenger mServiceMessenger = null;
@@ -75,8 +58,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //25 -> 60
-        //11 -> 80
         activity = this;
 
 
@@ -89,10 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        audioManager = (AudioManager) getSystemService(activity.AUDIO_SERVICE);
-
-
-        startService(new Intent(MainActivity.this, AudioService.class));
+        if(App.isServiceRunning(activity))
+            startService(new Intent(MainActivity.this, AudioService.class));
         bindService(new Intent(this, AudioService.class), mConnection, Context.BIND_AUTO_CREATE);
 
         button_alpha.setOnClickListener(new View.OnClickListener() {
@@ -109,12 +88,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //selectBluetoothDevice();
-
-        Sound = new Thread(){
-            public void run(){
-
-            }
-        };
     }
 
     @Override
@@ -123,16 +96,6 @@ public class MainActivity extends AppCompatActivity {
 
         ButtonUpdate();
 
-        if (bluetoothAdapter == null) {
-            Toast.makeText(activity, "블루투스 미지원 기기!",Toast.LENGTH_LONG);
-            finish();
-        } else {
-            if (!bluetoothAdapter.isEnabled()) {
-                Toast.makeText(activity, "블루투스를 켜주세요!",Toast.LENGTH_LONG);
-                Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-                startActivity(intent);
-            }
-        }
     }
 
 
@@ -141,6 +104,40 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Intent intent = new Intent(this, AudioService.class);
+        stopService(intent);
+    }
+
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder alBuilder = new AlertDialog.Builder(this);
+        alBuilder.setMessage("종료하시겠습니까?");
+
+        alBuilder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                moveTaskToBack(true);
+                finish();
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
+
+        alBuilder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                return;
+            }
+        });
+
+        alBuilder.setTitle("프로그램 종료");
+        alBuilder.show();
+    }
+
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override

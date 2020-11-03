@@ -65,7 +65,7 @@ public class AudioService extends Service  {
         Log.e(TAG, TAG + " onCreate");
         App.audioServiceBound = true;
         audioManager = (AudioManager) getSystemService(context.AUDIO_SERVICE);
-        initializeNotification("서비스 동작중", time(3601));
+        initializeNotification("서비스 동작중", "");
     }
 
     @Override
@@ -81,6 +81,11 @@ public class AudioService extends Service  {
         super.onDestroy();
         Log.e(TAG, TAG + " onDestroy");
         App.audioServiceBound = false;
+        try {
+            playSound(STOP);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
