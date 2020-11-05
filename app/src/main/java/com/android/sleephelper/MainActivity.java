@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-
 public class MainActivity extends AppCompatActivity {
     Context activity;
 
@@ -58,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        activity = this;
 
+        activity = this;
 
         button_alpha = findViewById(R.id.main_BT_alpha);
         button_beta = findViewById(R.id.main_BT_beta);
@@ -95,14 +94,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         ButtonUpdate();
-
     }
-
 
     @Override
     protected void onStop(){
         super.onStop();
-
     }
 
     @Override
@@ -199,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
             button_beta.setIcon(ic_stop);
         else
             button_beta.setIcon(ic_play);
-
     }
 
     public void selectBluetoothDevice() {

@@ -217,7 +217,7 @@ public class AudioService extends Service  {
                 str = "알파파 재생중";
             }
             else if(App.isPlaying_beta) {
-                vol = 0.6;
+                vol = 0.4;
                 str = "베타파 재생중";
             }
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,

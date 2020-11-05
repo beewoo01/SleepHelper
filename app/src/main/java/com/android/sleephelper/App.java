@@ -1,6 +1,5 @@
 package com.android.sleephelper;
 
-
 import android.app.ActivityManager;
 import android.content.Context;
 import android.net.Network;
@@ -25,7 +24,4 @@ public class App extends android.app.Application {
         }
         return false;
     }
-
-
-
 }
